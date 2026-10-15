@@ -115,4 +115,5 @@ pytest -s
 - **Never use JS frameworks** — the frontend is intentionally vanilla
 - **`database/db.py` provides `get_db()`, `init_db()`, `seed_db()`, `get_user_by_email()`, `create_user()`** — the DB file is `expense_tracker.db` in the project root (tests override it via `app.config["DATABASE"]`); `app.py` calls `init_db()` and `seed_db()` at startup. Any other helper does not exist until the step that implements it
 - **FK enforcement is manual** — SQLite foreign keys are off by default; `get_db()` must run `PRAGMA foreign_keys = ON` on every connection
+- **Sessions exist** (Step 3): `app.secret_key` comes from `SECRET_KEY` env var (dev fallback); only `session["user_id"]` is stored
 - The app runs on **port 5001**, not the Flask default 5000 — don't change this

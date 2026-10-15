@@ -2,6 +2,7 @@ import os
 import sqlite3
 from datetime import date
 
+from flask import current_app, has_app_context
 from werkzeug.security import generate_password_hash
 
 DB_PATH = os.path.join(
@@ -11,10 +12,36 @@ DB_PATH = os.path.join(
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    path = DB_PATH
+    if has_app_context():
+        path = current_app.config.get("DATABASE") or DB_PATH
+    conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
+
+
+def get_user_by_email(email):
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT * FROM users WHERE email = ?", (email,)
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def create_user(name, email, password):
+    conn = get_db()
+    try:
+        cursor = conn.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (name, email, generate_password_hash(password)),
+        )
+        conn.commit()
+        return cursor.lastrowid
+    finally:
+        conn.close()
 
 
 def init_db():

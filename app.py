@@ -90,63 +90,56 @@ def logout():
     return redirect(url_for("landing"))
 
 
-# Hardcoded profile data — replaced by database queries in a later step.
+# ------------------------------------------------------------------ #
+# Placeholder routes — students will implement these                  #
+# ------------------------------------------------------------------ #
+
 PROFILE_USER = {
-    "name": "Priya Sharma",
-    "email": "priya.sharma@example.com",
-    "member_since": "March 2025",
+    "name": "Demo User",
+    "email": "demo@spendly.com",
+    "initials": "DU",
+    "member_since": "January 2026",
+}
+
+PROFILE_STATS = {
+    "total_spent": "380.24",
+    "transaction_count": 8,
+    "top_category": "Bills",
 }
 
 PROFILE_TRANSACTIONS = [
-    {"date": "14 Oct 2025", "description": "Grocery run", "category": "Food", "amount": 1840},
-    {"date": "12 Oct 2025", "description": "Metro card top-up", "category": "Transport", "amount": 500},
-    {"date": "10 Oct 2025", "description": "Electricity bill", "category": "Bills", "amount": 2300},
-    {"date": "07 Oct 2025", "description": "Dinner with friends", "category": "Food", "amount": 1260},
-    {"date": "03 Oct 2025", "description": "Pharmacy", "category": "Health", "amount": 640},
-    {"date": "29 Sep 2025", "description": "Headphones", "category": "Shopping", "amount": 2450},
+    {"date": "24 Oct 2026", "description": "Groceries", "category": "Food", "amount": "42.75"},
+    {"date": "19 Oct 2026", "description": "Miscellaneous", "category": "Other", "amount": "15.00"},
+    {"date": "15 Oct 2026", "description": "New shoes", "category": "Shopping", "amount": "89.99"},
+    {"date": "11 Oct 2026", "description": "Movie tickets", "category": "Entertainment", "amount": "25.00"},
+    {"date": "08 Oct 2026", "description": "Pharmacy", "category": "Health", "amount": "30.00"},
+    {"date": "05 Oct 2026", "description": "Electricity bill", "category": "Bills", "amount": "120.00"},
+    {"date": "03 Oct 2026", "description": "Monthly bus pass", "category": "Transport", "amount": "45.00"},
+    {"date": "01 Oct 2026", "description": "Lunch at cafe", "category": "Food", "amount": "12.50"},
+]
+
+PROFILE_CATEGORIES = [
+    {"name": "Bills", "total": "120.00", "percent": 32},
+    {"name": "Food", "total": "55.25", "percent": 15},
+    {"name": "Shopping", "total": "89.99", "percent": 24},
+    {"name": "Transport", "total": "45.00", "percent": 12},
+    {"name": "Health", "total": "30.00", "percent": 8},
+    {"name": "Entertainment", "total": "25.00", "percent": 7},
+    {"name": "Other", "total": "15.00", "percent": 4},
 ]
 
 
-def _initials(name):
-    return "".join(word[0] for word in name.split()[:2]).upper()
-
-
-def _profile_context():
-    totals = {}
-    for transaction in PROFILE_TRANSACTIONS:
-        category = transaction["category"]
-        totals[category] = totals.get(category, 0) + transaction["amount"]
-
-    total_spent = sum(totals.values())
-    categories = []
-    for name, amount in sorted(totals.items(), key=lambda item: item[1], reverse=True):
-        pct = round(amount / total_spent * 100)
-        categories.append({
-            "name": name,
-            "slug": name.lower(),
-            "amount": amount,
-            "pct": pct,
-            "bucket": 5 * round(pct / 5),
-        })
-
-    return {
-        "user": {**PROFILE_USER, "initials": _initials(PROFILE_USER["name"])},
-        "stats": {
-            "total_spent": total_spent,
-            "transaction_count": len(PROFILE_TRANSACTIONS),
-            "top_category": categories[0]["name"],
-        },
-        "transactions": PROFILE_TRANSACTIONS,
-        "categories": categories,
-    }
-
-
-# The page shows the same hardcoded user for every logged-in account for now.
 @app.route("/profile")
 def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
-    return render_template("profile.html", **_profile_context())
+    return render_template(
+        "profile.html",
+        user=PROFILE_USER,
+        stats=PROFILE_STATS,
+        transactions=PROFILE_TRANSACTIONS,
+        categories=sorted(PROFILE_CATEGORIES, key=lambda c: c["percent"], reverse=True),
+    )
 
 
 # ------------------------------------------------------------------ #

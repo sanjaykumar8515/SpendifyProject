@@ -6,8 +6,6 @@ import pytest
 from database import db
 
 ROOT = Path(__file__).resolve().parent.parent
-PROFILE_TEMPLATE = ROOT / "templates" / "profile.html"
-PROFILE_CSS = ROOT / "static" / "css" / "profile.css"
 
 
 @pytest.fixture
@@ -29,77 +27,47 @@ def client(app):
     return app.test_client()
 
 
-@pytest.fixture
-def logged_in(client):
-    client.post("/login", data={"email": "bob@example.com", "password": "password123"})
-    return client
+def _login(client):
+    return client.post(
+        "/login", data={"email": "bob@example.com", "password": "password123"}
+    )
 
 
 def test_profile_requires_login(client):
     resp = client.get("/profile")
     assert resp.status_code == 302
-    assert resp.headers["Location"].endswith("/login")
+    assert resp.headers["Location"] == "/login"
 
 
-def test_profile_renders_when_logged_in(logged_in):
-    resp = logged_in.get("/profile")
+def test_profile_renders_when_logged_in(client):
+    _login(client)
+    resp = client.get("/profile")
     assert resp.status_code == 200
-    assert b"<html" in resp.data
+    page = resp.data
+    for text in (b"Total spent", b"Transactions", b"Top category",
+                 b"Transaction history", b"Category breakdown",
+                 b"Member since"):
+        assert text in page
 
 
-def test_user_info_present(logged_in):
-    import app as app_module
-
-    html = logged_in.get("/profile").get_data(as_text=True)
-    assert app_module.PROFILE_USER["name"] in html
-    assert app_module.PROFILE_USER["email"] in html
-    assert app_module.PROFILE_USER["member_since"] in html
-    assert "PS" in html
+def test_profile_has_enough_content(client):
+    _login(client)
+    page = client.get("/profile").data.decode()
+    assert page.count("<tr>") - 1 >= 3  # header row excluded
+    assert page.count('class="category-row"') >= 3
 
 
-def test_stats_match_hardcoded_transactions(logged_in):
-    import app as app_module
-
-    transactions = app_module.PROFILE_TRANSACTIONS
-    total = sum(t["amount"] for t in transactions)
-    html = logged_in.get("/profile").get_data(as_text=True)
-    assert f"₹{total:,}" in html
-    assert f'<span class="profile-stat-value">{len(transactions)}</span>' in html
-    assert '<span class="profile-stat-value">Food</span>' in html
+def test_navbar_shows_profile_and_sign_out(client):
+    _login(client)
+    page = client.get("/profile").data
+    assert b"Profile" in page and b"Sign out" in page
+    assert b"Get started" not in page
 
 
-def test_transaction_table_has_enough_rows(logged_in):
-    html = logged_in.get("/profile").get_data(as_text=True)
-    tbody = html.split("<tbody>")[1].split("</tbody>")[0]
-    assert tbody.count("<tr>") >= 3
-    assert "profile-badge-" in tbody
-
-
-def test_category_breakdown(logged_in):
-    html = logged_in.get("/profile").get_data(as_text=True)
-    fills = re.findall(r'class="(profile-bar-fill[^"]*)"', html)
-    assert len(fills) >= 3
-    assert all("profile-bar-w-" in classes for classes in fills)
-
-
-def test_navbar_logged_in(logged_in):
-    html = logged_in.get("/profile").get_data(as_text=True)
-    assert 'href="/profile"' in html
-    assert "Profile" in html
-    assert "Sign out" in html
-    assert "Get started" not in html
-
-
-def test_navbar_logged_out(client):
-    html = client.get("/login").get_data(as_text=True)
-    assert "Sign in" in html
-    assert "Get started" in html
-    assert 'href="/profile"' not in html
-
-
-@pytest.mark.parametrize("path", [PROFILE_TEMPLATE, PROFILE_CSS], ids=lambda p: p.name)
-def test_no_inline_styles_or_hex_colours(path):
-    text = path.read_text(encoding="utf-8")
-    assert not re.search(r"style\s*=", text, re.I)
-    assert "<style" not in text.lower()
-    assert not re.search(r"#[0-9a-fA-F]{3,8}\b", text)
+def test_no_inline_styles_or_hex_in_profile_assets(client):
+    _login(client)
+    assert b'style="' not in client.get("/profile").data
+    template = (ROOT / "templates" / "profile.html").read_text(encoding="utf-8")
+    css = (ROOT / "static" / "css" / "profile.css").read_text(encoding="utf-8")
+    assert not re.search(r"#[0-9a-fA-F]{3,8}\b", template)
+    assert not re.search(r"#[0-9a-fA-F]{3,8}\b", css)

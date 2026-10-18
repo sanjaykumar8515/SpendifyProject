@@ -42,7 +42,7 @@ def test_get_login_renders_form(client, app):
 def test_login_success_sets_session_and_redirects(client, app):
     resp = _login(client)
     assert resp.status_code == 302
-    assert resp.headers["Location"] == "/"
+    assert resp.headers["Location"] == "/profile"
     with client.session_transaction() as sess:
         assert sess["user_id"] == _user_id(app)
 
@@ -75,7 +75,7 @@ def test_login_when_logged_in_redirects(client):
     _login(client)
     resp = client.get("/login")
     assert resp.status_code == 302
-    assert resp.headers["Location"] == "/"
+    assert resp.headers["Location"] == "/profile"
 
 
 def test_logout_clears_session(client):
@@ -105,4 +105,4 @@ def test_auth_pages_redirect_when_logged_in(client, path, method):
     _login(client)
     resp = getattr(client, method)(path, data={"email": "x@example.com", "password": "password123", "name": "X"})
     assert resp.status_code == 302
-    assert resp.headers["Location"] == "/"
+    assert resp.headers["Location"] == "/profile"

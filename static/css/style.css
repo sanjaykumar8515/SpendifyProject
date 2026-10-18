@@ -29,6 +29,8 @@
     --cat-health-light: #f8e8e5;
     --cat-shopping: #7a5195;
     --cat-shopping-light: #f0e9f5;
+    --cat-entertainment: #2f7f79;
+    --cat-entertainment-light: #e3f1ef;
     --cat-other: var(--ink-muted);
     --cat-other-light: var(--paper-warm);
 

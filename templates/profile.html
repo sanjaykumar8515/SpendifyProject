@@ -22,7 +22,7 @@
         <div class="profile-stat">
             <span class="profile-stat-icon"><i data-lucide="wallet" aria-hidden="true"></i></span>
             <span class="profile-stat-label">Total spent</span>
-            <span class="profile-stat-value">₹{{ '{:,}'.format(stats.total_spent) }}</span>
+            <span class="profile-stat-value">₹{{ '{:,.2f}'.format(stats.total_spent) }}</span>
         </div>
         <div class="profile-stat">
             <span class="profile-stat-icon"><i data-lucide="receipt" aria-hidden="true"></i></span>
@@ -38,6 +38,7 @@
 
     <section class="profile-card">
         <h2 class="profile-section-title"><i data-lucide="list" aria-hidden="true"></i>Transaction history</h2>
+        {% if transactions %}
         <div class="profile-table-wrap">
             <table class="profile-table">
                 <thead>
@@ -54,22 +55,26 @@
                         <td>{{ t.date }}</td>
                         <td>{{ t.description }}</td>
                         <td><span class="profile-badge profile-badge-{{ t.category|lower }}">{{ t.category }}</span></td>
-                        <td class="profile-num">₹{{ '{:,}'.format(t.amount) }}</td>
+                        <td class="profile-num">₹{{ '{:,.2f}'.format(t.amount) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <p class="profile-empty">No expenses yet.</p>
+        {% endif %}
     </section>
 
     <section class="profile-card">
         <h2 class="profile-section-title"><i data-lucide="pie-chart" aria-hidden="true"></i>Spending by category</h2>
+        {% if categories %}
         <ul class="profile-cats">
             {% for c in categories %}
             <li class="profile-cat-row">
                 <div class="profile-cat-head">
                     <span class="profile-badge profile-badge-{{ c.slug }}">{{ c.name }}</span>
-                    <span class="profile-cat-amount">₹{{ '{:,}'.format(c.amount) }}</span>
+                    <span class="profile-cat-amount">₹{{ '{:,.2f}'.format(c.amount) }}</span>
                     <span class="profile-cat-pct">{{ c.pct }}%</span>
                 </div>
                 <div class="profile-bar-track" role="progressbar" aria-label="{{ c.name }} share of spending" aria-valuenow="{{ c.pct }}" aria-valuemin="0" aria-valuemax="100">
@@ -78,6 +83,9 @@
             </li>
             {% endfor %}
         </ul>
+        {% else %}
+        <p class="profile-empty">No spending to break down yet.</p>
+        {% endif %}
     </section>
 
 </div>

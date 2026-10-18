@@ -1,10 +1,17 @@
 import os
 import sqlite3
+from datetime import datetime
 
 from flask import Flask, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
 from database.db import create_user, get_db, get_user_by_email, init_db, seed_db
+from database.queries import (
+    get_category_breakdown,
+    get_recent_transactions,
+    get_summary_stats,
+    get_user_by_id,
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-insecure-secret-key")
@@ -91,54 +98,63 @@ def logout():
 
 
 # ------------------------------------------------------------------ #
-# Placeholder routes — students will implement these                  #
+# Profile                                                             #
 # ------------------------------------------------------------------ #
 
-PROFILE_USER = {
-    "name": "Demo User",
-    "email": "demo@spendly.com",
-    "initials": "DU",
-    "member_since": "January 2026",
-}
+KNOWN_CATEGORY_SLUGS = {"food", "transport", "bills", "health", "shopping", "entertainment"}
 
-PROFILE_STATS = {
-    "total_spent": "380.24",
-    "transaction_count": 8,
-    "top_category": "Bills",
-}
 
-PROFILE_TRANSACTIONS = [
-    {"date": "24 Oct 2026", "description": "Groceries", "category": "Food", "amount": "42.75"},
-    {"date": "19 Oct 2026", "description": "Miscellaneous", "category": "Other", "amount": "15.00"},
-    {"date": "15 Oct 2026", "description": "New shoes", "category": "Shopping", "amount": "89.99"},
-    {"date": "11 Oct 2026", "description": "Movie tickets", "category": "Entertainment", "amount": "25.00"},
-    {"date": "08 Oct 2026", "description": "Pharmacy", "category": "Health", "amount": "30.00"},
-    {"date": "05 Oct 2026", "description": "Electricity bill", "category": "Bills", "amount": "120.00"},
-    {"date": "03 Oct 2026", "description": "Monthly bus pass", "category": "Transport", "amount": "45.00"},
-    {"date": "01 Oct 2026", "description": "Lunch at cafe", "category": "Food", "amount": "12.50"},
-]
+def get_initials(name):
+    return "".join(word[0] for word in name.split()[:2]).upper() or "?"
 
-PROFILE_CATEGORIES = [
-    {"name": "Bills", "total": "120.00", "percent": 32},
-    {"name": "Food", "total": "55.25", "percent": 15},
-    {"name": "Shopping", "total": "89.99", "percent": 24},
-    {"name": "Transport", "total": "45.00", "percent": 12},
-    {"name": "Health", "total": "30.00", "percent": 8},
-    {"name": "Entertainment", "total": "25.00", "percent": 7},
-    {"name": "Other", "total": "15.00", "percent": 4},
-]
+
+def format_display_date(iso_date):
+    try:
+        return datetime.strptime(iso_date, "%Y-%m-%d").strftime("%d %b %Y")
+    except (TypeError, ValueError):
+        return iso_date
+
+
+def category_slug(name):
+    slug = name.lower()
+    return slug if slug in KNOWN_CATEGORY_SLUGS else "other"
+
+
+def bar_bucket(pct):
+    return min(100, max(0, 5 * round(pct / 5)))
 
 
 @app.route("/profile")
 def profile():
-    if not session.get("user_id"):
+    user_id = session.get("user_id")
+    if not user_id:
         return redirect(url_for("login"))
+
+    user = get_user_by_id(user_id)
+    if user is None:
+        session.clear()
+        return redirect(url_for("login"))
+
+    transactions = [
+        {**t, "date": format_display_date(t["date"])}
+        for t in get_recent_transactions(user_id)
+    ]
+    categories = [
+        {
+            "name": c["name"],
+            "slug": category_slug(c["name"]),
+            "amount": c["amount"],
+            "pct": c["pct"],
+            "bucket": bar_bucket(c["pct"]),
+        }
+        for c in get_category_breakdown(user_id)
+    ]
     return render_template(
         "profile.html",
-        user=PROFILE_USER,
-        stats=PROFILE_STATS,
-        transactions=PROFILE_TRANSACTIONS,
-        categories=sorted(PROFILE_CATEGORIES, key=lambda c: c["percent"], reverse=True),
+        user={**user, "initials": get_initials(user["name"])},
+        stats=get_summary_stats(user_id),
+        transactions=transactions,
+        categories=categories,
     )
 
 

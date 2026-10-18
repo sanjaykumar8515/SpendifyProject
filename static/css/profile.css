@@ -173,6 +173,7 @@
 .profile-badge-bills { color: var(--cat-bills); background: var(--cat-bills-light); }
 .profile-badge-health { color: var(--cat-health); background: var(--cat-health-light); }
 .profile-badge-shopping { color: var(--cat-shopping); background: var(--cat-shopping-light); }
+.profile-badge-entertainment { color: var(--cat-entertainment); background: var(--cat-entertainment-light); }
 
 /* Category breakdown */
 
@@ -222,6 +223,14 @@
 .profile-bar-bills { background: var(--cat-bills); }
 .profile-bar-health { background: var(--cat-health); }
 .profile-bar-shopping { background: var(--cat-shopping); }
+.profile-bar-entertainment { background: var(--cat-entertainment); }
+
+/* Empty states */
+
+.profile-empty {
+    color: var(--ink-muted);
+    font-size: 0.875rem;
+}
 
 /* Bar widths (5% buckets, so no inline styles are needed) */
 

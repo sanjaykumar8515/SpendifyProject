@@ -19,6 +19,19 @@
     --border: #e4e1da;
     --border-soft: #eeebe4;
 
+    --cat-food: var(--accent);
+    --cat-food-light: var(--accent-light);
+    --cat-transport: var(--accent-2);
+    --cat-transport-light: var(--accent-2-light);
+    --cat-bills: #3b6ea5;
+    --cat-bills-light: #e6eef7;
+    --cat-health: #a8453a;
+    --cat-health-light: #f8e8e5;
+    --cat-shopping: #7a5195;
+    --cat-shopping-light: #f0e9f5;
+    --cat-other: var(--ink-muted);
+    --cat-other-light: var(--paper-warm);
+
     --font-display: 'DM Serif Display', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
 
@@ -526,6 +539,7 @@ a { color: inherit; text-decoration: none; }
 
 @media (max-width: 600px) {
     .nav-links a:not(.nav-cta) { display: none; }
+    .nav-links a.nav-link-always { display: inline; }
     .hero { padding: 3rem 1rem 2rem; }
 }
 

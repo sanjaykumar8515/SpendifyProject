@@ -42,7 +42,7 @@ def validate_registration(name, email, password):
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if session.get("user_id"):
-        return redirect(url_for("landing"))
+        return redirect(url_for("profile"))
     if request.method == "GET":
         return render_template("register.html")
 
@@ -141,6 +141,10 @@ def profile():
         categories=sorted(PROFILE_CATEGORIES, key=lambda c: c["percent"], reverse=True),
     )
 
+
+# ------------------------------------------------------------------ #
+# Placeholder routes — students will implement these                  #
+# ------------------------------------------------------------------ #
 
 @app.route("/expenses/add")
 def add_expense():

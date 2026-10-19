@@ -18,6 +18,31 @@
         </div>
     </section>
 
+    <form class="profile-card profile-filter" method="get" action="{{ url_for('profile') }}">
+        <nav class="profile-presets" aria-label="Quick date ranges">
+            {% for preset in presets %}
+            <a class="profile-preset{% if preset.active %} profile-preset-active{% endif %}"
+               href="{{ url_for('profile', date_from=preset.date_from, date_to=preset.date_to) }}"
+               {% if preset.active %}aria-current="true"{% endif %}>{{ preset.label }}</a>
+            {% endfor %}
+        </nav>
+        <div class="profile-filter-field">
+            <label class="profile-filter-label" for="date_from">From</label>
+            <input class="form-input" type="date" id="date_from" name="date_from" value="{{ date_from }}">
+        </div>
+        <div class="profile-filter-field">
+            <label class="profile-filter-label" for="date_to">To</label>
+            <input class="form-input" type="date" id="date_to" name="date_to" value="{{ date_to }}">
+        </div>
+        <div class="profile-filter-actions">
+            <button type="submit" class="btn-primary">Apply</button>
+            <a class="btn-ghost" href="{{ url_for('profile') }}">Clear</a>
+        </div>
+        {% if filter_error %}
+        <p class="profile-filter-error" role="alert">{{ filter_error }}</p>
+        {% endif %}
+    </form>
+
     <section class="profile-stats" aria-label="Spending summary">
         <div class="profile-stat">
             <span class="profile-stat-icon"><i data-lucide="wallet" aria-hidden="true"></i></span>
@@ -62,7 +87,7 @@
             </table>
         </div>
         {% else %}
-        <p class="profile-empty">No expenses yet.</p>
+        <p class="profile-empty">{% if filter_active %}No expenses in this date range.{% else %}No expenses yet.{% endif %}</p>
         {% endif %}
     </section>
 
@@ -84,7 +109,7 @@
             {% endfor %}
         </ul>
         {% else %}
-        <p class="profile-empty">No spending to break down yet.</p>
+        <p class="profile-empty">{% if filter_active %}No spending in this date range.{% else %}No spending to break down yet.{% endif %}</p>
         {% endif %}
     </section>
 

@@ -1,6 +1,7 @@
+import calendar
 import os
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
 
 from flask import Flask, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
@@ -124,6 +125,58 @@ def bar_bucket(pct):
     return min(100, max(0, 5 * round(pct / 5)))
 
 
+def parse_date_range(raw_from, raw_to):
+    parsed = []
+    for raw in (raw_from, raw_to):
+        raw = (raw or "").strip()
+        if not raw:
+            parsed.append(None)
+            continue
+        try:
+            parsed_date = datetime.strptime(raw, "%Y-%m-%d").date()
+            parsed.append(parsed_date.isoformat())
+        except ValueError:
+            return None, None, "Enter dates as YYYY-MM-DD"
+    date_from, date_to = parsed
+    if date_from and date_to and date_from > date_to:
+        return None, None, "Start date must be on or before end date"
+    return date_from, date_to, None
+
+
+def shift_months(day, months):
+    """Move back `months` months, clamping the day to that month's end."""
+    year, month_index = divmod(day.year * 12 + day.month - 1 - months, 12)
+    month = month_index + 1
+    last_day = calendar.monthrange(year, month)[1]
+    return day.replace(year=year, month=month, day=min(day.day, last_day))
+
+
+def get_filter_presets(today, date_from, date_to):
+    month_start = today.replace(day=1)
+    month_end = today.replace(
+        day=calendar.monthrange(today.year, today.month)[1]
+    )
+    ranges = [
+        ("All Time", None, None),
+        ("This Month", month_start, month_end),
+    ]
+    ranges += [
+        (f"Last {months} Months", shift_months(today, months), None)
+        for months in (3, 6)
+    ]
+    presets = []
+    for label, start, end in ranges:
+        start_iso = start.isoformat() if start else None
+        end_iso = end.isoformat() if end else None
+        presets.append({
+            "label": label,
+            "date_from": start_iso,
+            "date_to": end_iso,
+            "active": (start_iso, end_iso) == (date_from, date_to),
+        })
+    return presets
+
+
 @app.route("/profile")
 def profile():
     user_id = session.get("user_id")
@@ -135,9 +188,14 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
+    raw_from = request.args.get("date_from", "").strip()
+    raw_to = request.args.get("date_to", "").strip()
+    date_from, date_to, filter_error = parse_date_range(raw_from, raw_to)
+    date_range = {"date_from": date_from, "date_to": date_to}
+
     transactions = [
         {**t, "date": format_display_date(t["date"])}
-        for t in get_recent_transactions(user_id)
+        for t in get_recent_transactions(user_id, **date_range)
     ]
     categories = [
         {
@@ -147,14 +205,19 @@ def profile():
             "pct": c["pct"],
             "bucket": bar_bucket(c["pct"]),
         }
-        for c in get_category_breakdown(user_id)
+        for c in get_category_breakdown(user_id, **date_range)
     ]
     return render_template(
         "profile.html",
         user={**user, "initials": get_initials(user["name"])},
-        stats=get_summary_stats(user_id),
+        stats=get_summary_stats(user_id, **date_range),
         transactions=transactions,
         categories=categories,
+        date_from=raw_from,
+        date_to=raw_to,
+        filter_error=filter_error,
+        filter_active=bool(date_from or date_to),
+        presets=get_filter_presets(date.today(), date_from, date_to),
     )
 
 

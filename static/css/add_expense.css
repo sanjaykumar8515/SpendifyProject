@@ -1,0 +1,17 @@
+.expense-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+select.form-input {
+    appearance: auto;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .expense-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}

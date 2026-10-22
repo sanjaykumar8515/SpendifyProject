@@ -105,4 +105,4 @@ def test_auth_pages_redirect_when_logged_in(client, path, method):
     _login(client)
     resp = getattr(client, method)(path, data={"email": "x@example.com", "password": "password123", "name": "X"})
     assert resp.status_code == 302
-    assert resp.headers["Location"] == ("/profile" if path == "/login" else "/")
+    assert resp.headers["Location"] == "/profile"

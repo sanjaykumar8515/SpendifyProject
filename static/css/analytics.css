@@ -1,0 +1,114 @@
+.analytics-page {
+    display: flex;
+    justify-content: center;
+    padding: 4rem 1.5rem;
+}
+
+.analytics-card {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 440px;
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    background: var(--paper-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 32px rgba(15, 15, 15, 0.08);
+}
+
+.analytics-card::before,
+.analytics-card::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: var(--paper-warm);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.analytics-card::before {
+    top: -50px;
+    right: -50px;
+    width: 130px;
+    height: 130px;
+}
+
+.analytics-card::after {
+    bottom: -60px;
+    left: -60px;
+    width: 150px;
+    height: 150px;
+}
+
+.analytics-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.analytics-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    margin-bottom: 1rem;
+    color: var(--paper-card);
+    background: linear-gradient(145deg, var(--accent), var(--ink));
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 20px rgba(26, 71, 42, 0.3);
+}
+
+.analytics-badge {
+    display: block;
+    width: fit-content;
+    margin: 0 auto 1.5rem;
+    padding: 0.4rem 1.1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper-card);
+    background: var(--accent);
+    border-radius: 999px;
+}
+
+.analytics-title {
+    margin: 0 0 1rem;
+    font-family: var(--font-body);
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.analytics-text {
+    margin: 0 auto 1.75rem;
+    max-width: 340px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+}
+
+.analytics-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.analytics-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+}
+
+.analytics-dot-active {
+    background: var(--ink-soft);
+}
+
+.analytics-footnote {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+}

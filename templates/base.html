@@ -20,7 +20,8 @@
             </a>
             <div class="nav-links">
                 {% if session.get('user_id') %}
-                <a href="{{ url_for('profile') }}" class="nav-link-always">Profile</a>
+                <a href="{{ url_for('profile') }}" class="nav-link-always{% if request.endpoint == 'profile' %} nav-link-active{% endif %}"{% if request.endpoint == 'profile' %} aria-current="page"{% endif %}>Profile</a>
+                <a href="{{ url_for('analytics') }}" class="nav-link-always{% if request.endpoint == 'analytics' %} nav-link-active{% endif %}"{% if request.endpoint == 'analytics' %} aria-current="page"{% endif %}>Analytics</a>
                 <a href="{{ url_for('logout') }}" class="nav-link-always">Sign out</a>
                 {% else %}
                 <a href="{{ url_for('login') }}">Sign in</a>

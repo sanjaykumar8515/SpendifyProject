@@ -11,7 +11,7 @@ Spendly is a lightweight personal expense tracker built with Flask and SQLite.
 spendly/
 ├── app.py              # All routes — single file, no blueprints
 ├── database/
-│   └── db.py           # SQLite helpers: get_db(), init_db(), seed_db(), get_user_by_email(), create_user()
+│   └── db.py           # SQLite helpers: get_db(), init_db(), seed_db(), get_user_by_email(), create_user(), create_expense()
 ├── templates/
 │   ├── base.html       # Shared layout — all templates must extend this
 │   └── *.html          # One template per page
@@ -98,7 +98,8 @@ pytest -s
 | `GET /login` | Implemented — renders `login.html` |
 | `GET /logout` | Stub — Step 3 |
 | `GET /profile` | Implemented — logged-in only (redirects to `login`); renders `profile.html` with live data from `database/queries.py` (Step 5); optional `?date_from=&date_to=` (YYYY-MM-DD) filters all sections, invalid input shows an error and unfiltered data (Step 6) |
-| `GET /expenses/add` | Stub — Step 7 |
+| `GET /expenses/add` | Implemented — logged-in only (redirects to `login`); renders `add_expense.html` (Step 7) |
+| `POST /expenses/add` | Implemented — validates, creates expense for session user, redirects to `profile` (400 + form on error) (Step 7) |
 | `GET /expenses/<id>/edit` | Stub — Step 8 |
 | `GET /expenses/<id>/delete` | Stub — Step 9 |
 
@@ -113,7 +114,7 @@ pytest -s
 - **Never put DB logic in route functions** — it belongs in `database/db.py`
 - **Never install new packages** mid-feature without flagging it — keep `requirements.txt` in sync
 - **Never use JS frameworks** — the frontend is intentionally vanilla
-- **`database/db.py` provides `get_db()`, `init_db()`, `seed_db()`, `get_user_by_email()`, `create_user()`** — the DB file is `expense_tracker.db` in the project root (tests override it via `app.config["DATABASE"]`); `app.py` calls `init_db()` and `seed_db()` at startup. Any other helper does not exist until the step that implements it
+- **`database/db.py` provides `get_db()`, `init_db()`, `seed_db()`, `get_user_by_email()`, `create_user()`, `create_expense()`** — the DB file is `expense_tracker.db` in the project root (tests override it via `app.config["DATABASE"]`); `app.py` calls `init_db()` and `seed_db()` at startup. Any other helper does not exist until the step that implements it
 - **FK enforcement is manual** — SQLite foreign keys are off by default; `get_db()` must run `PRAGMA foreign_keys = ON` on every connection
 - **`database/queries.py`** (Step 5, imports `get_db()` from `db.py`) provides `get_user_by_id()`, `get_summary_stats()`, `get_recent_transactions()`, `get_category_breakdown()` for the profile page; the last three accept optional `date_from`/`date_to` ISO dates (Step 6)
 - **Sessions exist** (Step 3): `app.secret_key` comes from `SECRET_KEY` env var (dev fallback); only `session["user_id"]` is stored

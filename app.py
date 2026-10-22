@@ -1,12 +1,21 @@
 import calendar
 import os
+import re
 import sqlite3
 from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 
 from flask import Flask, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
-from database.db import create_user, get_db, get_user_by_email, init_db, seed_db
+from database.db import (
+    create_expense,
+    create_user,
+    get_db,
+    get_user_by_email,
+    init_db,
+    seed_db,
+)
 from database.queries import (
     get_category_breakdown,
     get_recent_transactions,
@@ -232,9 +241,88 @@ def analytics():
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
 
-@app.route("/expenses/add")
+EXPENSE_CATEGORIES = [
+    "Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other",
+]
+MAX_AMOUNT = Decimal("1000000")
+MAX_DESCRIPTION = 200
+
+
+def validate_expense(amount, category, date_str, description):
+    """Return (error, cleaned); cleaned is None when there is an error."""
+    amount = amount.strip()
+    if not amount:
+        return "Amount is required", None
+    if not re.fullmatch(r"[0-9]+(\.[0-9]*)?|\.[0-9]+", amount):
+        return "Enter a valid positive amount", None
+    try:
+        value = Decimal(amount)
+    except InvalidOperation:
+        return "Enter a valid positive amount", None
+    if value <= 0:
+        return "Amount must be greater than zero", None
+    if value > MAX_AMOUNT:
+        return "Amount must not exceed 1,000,000", None
+    if value != value.quantize(Decimal("0.01")):
+        return "Amount can have at most 2 decimal places", None
+
+    if category not in EXPENSE_CATEGORIES:
+        return "Choose a valid category", None
+
+    date_str = date_str.strip()
+    try:
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_str):
+            raise ValueError
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        return "Enter a valid date (YYYY-MM-DD)", None
+
+    description = description.strip()
+    if len(description) > MAX_DESCRIPTION:
+        return f"Description must be {MAX_DESCRIPTION} characters or fewer", None
+
+    return None, {
+        "amount": float(value.quantize(Decimal("0.01"))),
+        "category": category,
+        "date": date_str,
+        "description": description,
+    }
+
+
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+    if request.method == "GET":
+        return render_template(
+            "add_expense.html",
+            categories=EXPENSE_CATEGORIES,
+            form={"date": date.today().isoformat()},
+        )
+
+    form = {
+        key: request.form.get(key, "")
+        for key in ("amount", "category", "date", "description")
+    }
+    error, cleaned = validate_expense(
+        form["amount"], form["category"], form["date"], form["description"]
+    )
+    if error:
+        return render_template(
+            "add_expense.html",
+            categories=EXPENSE_CATEGORIES,
+            form=form,
+            error=error,
+        ), 400
+    create_expense(
+        user_id,
+        cleaned["amount"],
+        cleaned["category"],
+        cleaned["date"],
+        cleaned["description"],
+    )
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")

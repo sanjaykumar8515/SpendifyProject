@@ -84,7 +84,7 @@ class TestGetRecentTransactions:
 
     def test_key_set_and_types(self, user_with_expenses):
         row = queries.get_recent_transactions(user_with_expenses)[0]
-        assert set(row) == {"date", "description", "category", "amount"}
+        assert set(row) == {"id", "date", "description", "category", "amount"}
         assert isinstance(row["amount"], float)
         assert row["amount"] == 42.75
 

@@ -156,6 +156,26 @@
     font-variant-numeric: tabular-nums;
 }
 
+.profile-table .profile-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.profile-edit-link {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.profile-edit-link:hover,
+.profile-edit-link:focus-visible {
+    background: var(--accent-light);
+    text-decoration: underline;
+}
+
 /* Category badges */
 
 .profile-badge {

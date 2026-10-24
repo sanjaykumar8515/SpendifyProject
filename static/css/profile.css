@@ -176,6 +176,28 @@
     text-decoration: underline;
 }
 
+.profile-delete-form {
+    display: inline;
+    margin: 0;
+}
+
+.profile-delete-btn {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--danger);
+    cursor: pointer;
+}
+
+.profile-delete-btn:hover,
+.profile-delete-btn:focus-visible {
+    background: var(--danger-light);
+}
+
 /* Category badges */
 
 .profile-badge {

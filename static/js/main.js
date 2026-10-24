@@ -1,3 +1,10 @@
+document.addEventListener('submit', function (event) {
+    var message = event.target.getAttribute('data-confirm');
+    if (message && !window.confirm(message)) {
+        event.preventDefault();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     if (window.lucide) {
         window.lucide.createIcons();

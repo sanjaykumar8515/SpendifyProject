@@ -11,6 +11,7 @@ from werkzeug.security import check_password_hash
 from database.db import (
     create_expense,
     create_user,
+    delete_expense as remove_expense,
     get_db,
     get_expense,
     get_user_by_email,
@@ -376,9 +377,14 @@ def edit_expense(id):
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/delete")
+@app.route("/expenses/<int:id>/delete", methods=["POST"])
 def delete_expense(id):
-    return "Delete expense — coming in Step 9"
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+    if not remove_expense(id, user_id):
+        abort(404)
+    return redirect(url_for("profile"))
 
 
 if __name__ == "__main__":
